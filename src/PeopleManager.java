@@ -7,8 +7,8 @@ import java.util.Map;
  */
 public class PeopleManager {
     // This varibale keeps the mapping of the people names and their corresponding relationships and rel strengths
-    Map<String, EnumCollection.RELATIONSHIP_TYPE> nameToRelTypeMap;
-    Map<String, EnumCollection.STRENGTH_TYPE> nameToStengthMap;
+    private Map<String, EnumCollection.RELATIONSHIP_TYPE> nameToRelTypeMap;
+    private Map<String, EnumCollection.STRENGTH_TYPE> nameToStengthMap;
 
     public PeopleManager() {
         nameToRelTypeMap = new HashMap<>();

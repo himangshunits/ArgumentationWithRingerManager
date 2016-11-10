@@ -2,7 +2,6 @@ import com.machine.learning.decisiontrees.DecisionTree;
 
 import java.io.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Himangshu Ranjan Borah on 10/21/16.
@@ -28,15 +27,13 @@ import java.util.Map;
  * which is freely distributed.
  */
 public class RingerManagerCore {
-    //private LocationManager mLocationManagaer;
     private DecisionTree mDecisionTree;
     private RationaleManager mRationaleManager;
     private static LocationManager mLocationManagaer;
-    private static String TRAIN_FILE_PATH = "data/initial_rules.psv";
+    private static final String TRAIN_FILE_PATH = "data/initial_rules.psv";
 
 
     public RingerManagerCore(){
-        //mLocationManagaer = new LocationManager();
         mDecisionTree = new DecisionTree();
         // Make the initial decision tree
         // Train your Decision Tree, will be update later
@@ -134,7 +131,7 @@ public class RingerManagerCore {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("Happy Feedback !! ");
+            System.out.println("Happy Feedback !! The following are the weighted feedback rankings according to the relationships. ");
             System.out.println("Positive =  " + positiveFeedbackCount);
             System.out.println("Neutral = " + neutralFeedBackCount);
             System.out.println("Negative = " + negativeFeedbackCount);

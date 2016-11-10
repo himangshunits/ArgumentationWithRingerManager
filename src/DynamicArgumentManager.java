@@ -1,5 +1,4 @@
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by Himangshu on 11/8/16.
@@ -21,16 +20,21 @@ import java.util.List;
  * BRIGHTNESS_LEVEL -> Don't consider for Rationale!
  */
 public class DynamicArgumentManager {
-    HashMap<EnumCollection.URGENCY_TYPE, EnumCollection.RINGER_MODE> mUrgencyMap;
-    HashMap<EnumCollection.CALLER_EXPECATION, EnumCollection.RINGER_MODE> mCallerExpMap;
-    HashMap<EnumCollection.LOCATION_TYPE, EnumCollection.RINGER_MODE> mLocationTypeMap;
-    HashMap<Integer, EnumCollection.RINGER_MODE> mNoiseLevelMap;
+    private HashMap<EnumCollection.URGENCY_TYPE, EnumCollection.RINGER_MODE> mUrgencyMap;
+    private HashMap<EnumCollection.CALLER_EXPECATION, EnumCollection.RINGER_MODE> mCallerExpMap;
+    private HashMap<EnumCollection.LOCATION_TYPE, EnumCollection.RINGER_MODE> mLocationTypeMap;
+    private HashMap<Integer, EnumCollection.RINGER_MODE> mNoiseLevelMap;
+    private LocationManager mLocationManager;
+    private Integer updateRequestCount;
+    private static final Integer MAX_UPDATE_REQUEST = 10;
 
-    public DynamicArgumentManager() {
+    public DynamicArgumentManager(LocationManager locMgr) {
+        mLocationManager = locMgr;
         mUrgencyMap = new HashMap<>();
         mCallerExpMap = new HashMap<>();
         mLocationTypeMap = new HashMap<>();
         mNoiseLevelMap = new HashMap<>();
+        updateRequestCount = 0;
         InitLocalData();
     }
 
@@ -107,10 +111,65 @@ public class DynamicArgumentManager {
     }
 
 
-    public void updateModelsFromRationaleFeedback(CallInfo cInfo){
+    public void updateModelsFromRationaleFeedback(RationaleInfo rationaleStruct){
         // Use the parser class here to find out the exact arguments.
         // Update the corresponding maps accordingly.
+        updateRequestCount++;
+        if(updateRequestCount >= MAX_UPDATE_REQUEST){
+            // Enough! Time for a change. Go ahead and replace the first argument's value.
+            updateIthArgument(rationaleStruct, 1);
+        } else if(updateRequestCount >= MAX_UPDATE_REQUEST * 2){
+            // Replace all arguments.
+            updateAllArguments(rationaleStruct);
+        } else {
+            System.out.println("Deciding not to update as of now!");
+        }
+    }
 
+    private void updateAllArguments(RationaleInfo rationaleStruct) {
+        for(int i = 1; i <= rationaleStruct.argsInFavor.size(); i++){
+            updateIthArgument(rationaleStruct, i);
+        }
+    }
 
+    private void updateIthArgument(RationaleInfo rationaleStruct, int i) {
+        if(rationaleStruct.argsInFavor.size() < i){
+            System.out.println("Un-parsable Rationale! Skipping");
+            return;
+        }
+        ArgumentInfo arg = rationaleStruct.argsInFavor.get(i - 1);
+        EnumCollection.RINGER_MODE pred = rationaleStruct.predictionInFavor;
+        switch (arg.contextKeyword){
+            case "place":
+                mLocationTypeMap.replace(mLocationManager.getLocationTypeForLocation(arg.value.toLowerCase()),
+                        mLocationTypeMap.get(mLocationManager.getLocationTypeForLocation(arg.value.toLowerCase())), pred );
+                break;
+            case "neighbor_relationship":
+                break;
+            case "expected_mode":
+                if(arg.value.equals("Loud")){
+                    mCallerExpMap.replace(EnumCollection.CALLER_EXPECATION.MUST_RECEIVE,
+                            mCallerExpMap.get(EnumCollection.CALLER_EXPECATION.MUST_RECEIVE), pred);
+                } else {
+                    mCallerExpMap.replace(EnumCollection.CALLER_EXPECATION.SHOULD_RECEIVE,
+                            mCallerExpMap.get(EnumCollection.CALLER_EXPECATION.SHOULD_RECEIVE), pred);
+                }
+                break;
+            case "noise":
+                Integer noiseLevelInt = Integer.parseInt(arg.value);
+                mNoiseLevelMap.replace(noiseLevelInt, mNoiseLevelMap.get(noiseLevelInt), pred);
+                break;
+            case "brightness":
+                // No Action.
+                break;
+            case "caller_relationship":
+                break;
+            case "call_reason":
+                EnumCollection.URGENCY_TYPE urgType = EnumCollection.URGENCY_TYPE.valueOf(arg.value);
+                mUrgencyMap.replace(urgType, mUrgencyMap.get(urgType), pred);
+                break;
+            default:
+                System.out.println("Invalid Context Keyword! = " + arg.contextKeyword);
+        }
     }
 }

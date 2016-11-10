@@ -25,14 +25,14 @@ import java.util.LinkedHashMap;
  * BRIGHTNESS_LEVEL -> Don't consider for Rationale!
  */
 public class RationaleManager {
-    DecisionTree mTreeInstance;
-    DynamicArgumentManager mArgumentManager;
-    LocationManager mLocationManager;
+    private DecisionTree mTreeInstance;
+    private DynamicArgumentManager mArgumentManager;
+    private LocationManager mLocationManager;
 
     public RationaleManager(DecisionTree mTreeInstance, LocationManager locMgr) {
         this.mTreeInstance = mTreeInstance;
         this.mLocationManager = locMgr;
-        this.mArgumentManager = new DynamicArgumentManager();
+        this.mArgumentManager = new DynamicArgumentManager(mLocationManager);
     }
 
     // TODO : The below 5 functions are now static, but that has to change. Going forward we will have an argument manager cass, which ill be owned by this class
@@ -78,6 +78,12 @@ public class RationaleManager {
 
         // Rule 2: If one of the top 2 guys match, then look for a match from the next three, if there's one,
         // then use that along with the first one and give a positive argument.
+
+        // If all of above are false, then red alert!
+        if(!isUrgencyMatch && !isCallerExpMatch && !isLocTypeMatch && !isneighborJudgementMatch && !isNoiseLevelMatch){
+            System.out.println("ABORT! Decision Trees Corrupted by bad feedbacks from neigbors! Please clean the initial_rules.psv manually. Abort!");
+            System.exit(-1);
+        }
 
 
         // Else: Should not reach here normally, still if does, then add all according to the favor or opposition.
@@ -129,7 +135,7 @@ public class RationaleManager {
 
             // First two obviously on opposition.
             mapOpp.put(new ArgumentInfo("ringermode", null, getPreferenceFromUrgency(dataPoint.urgency).name()), new ArgumentInfo("call_reason", null, dataPoint.urgency.name()));
-            mapOpp.put(new ArgumentInfo("ringermode", null, getPreferenceFromCallerExpectation(dataPoint.callerExpectation).name()), new ArgumentInfo("expected_mode", "Majority", prediction.name()));
+            mapOpp.put(new ArgumentInfo("ringermode", null, getPreferenceFromCallerExpectation(dataPoint.callerExpectation).name()), new ArgumentInfo("expected_mode", "AtleastOne", prediction.name()));
 
 
             // URGENCY > CALLER_EXPECTATION > LOCATION_TYPE > NEIGHBOR_JUDGEMENT > NOISE_LEVEL > BRIGHTNESS_LEVEL
@@ -137,6 +143,10 @@ public class RationaleManager {
                 mapFavor.put(new ArgumentInfo("ringermode", null, prediction.name()), new ArgumentInfo("place", null, location));
             } else {
                 mapOpp.put(new ArgumentInfo("ringermode", null, getPreferenceFromLocationType(dataPoint.locationType).name()), new ArgumentInfo("place", null, location));
+            }
+
+            if(isneighborJudgementMatch){
+                mapFavor.put(new ArgumentInfo("ringermode", null, prediction.name()), new ArgumentInfo("expected_mode", "Majority", prediction.name()));
             }
 
             if(isNoiseLevelMatch){
@@ -217,6 +227,7 @@ public class RationaleManager {
             noOfNegativeMismatches += (doesArgumentMatch(item, rationaleStruct.predictionInOpp)? 0:1);
         }
 
+
         if(noOfPositiveMatches > 0)
             return EnumCollection.FEEDBACK_TYPE.POSITIVE;
         else if (noOfNegativeMismatches > 0)
@@ -224,6 +235,7 @@ public class RationaleManager {
         else {
             // This is the place where we need to learn!
             // TODO : Learn from the new rationales received from other people.
+            mArgumentManager.updateModelsFromRationaleFeedback(rationaleStruct);
             return EnumCollection.FEEDBACK_TYPE.NEUTRAL;
         }
     }

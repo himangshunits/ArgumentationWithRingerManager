@@ -2,13 +2,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.sun.javafx.binding.IntegerConstant;
-import com.sun.org.apache.xpath.internal.Arg;
-import sun.reflect.annotation.ExceptionProxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -406,8 +402,16 @@ public class Driver {
         System.out.println("Going to Give Feedbacks.");
         try {
             //?action=giveFeedback&callId=C&userId=U&feedback=F1&feedbackUpdated=F2
+            String feedbackStr = null;
+            String updatedFeedbackStr = null;
+            if(feedback != null){
+                feedbackStr = feedback.toString();
+            }
+            if(updatedFeedback != null){
+                updatedFeedbackStr = updatedFeedback.toString();
+            }
             URL url = new URL("http://yangtze.csc.ncsu.edu:9090/csc555sd/services.jsp?action=giveFeedback&callId=" +
-                    callId + "&userId=" + userId + "&feedback="+ feedback.toString() +"&feedbackUpdated=" + updatedFeedback.toString());
+                    callId + "&userId=" + userId + "&feedback="+ feedbackStr +"&feedbackUpdated=" + updatedFeedbackStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             //conn.setRequestProperty("Accept", "application/json");
@@ -521,9 +525,19 @@ public class Driver {
         /*############################################################*/
 
 
-        System.out.println("The Feedbacks Received :: ");
+        System.out.println("The Feedbacks Received from everyone :: ");
         System.out.println(feedbackList);
 
+
+
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        System.out.println("####################   New Flows Here ! Getting the Calls in Current Place  ####################");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
 
 
         /*############################################################*/
@@ -532,9 +546,7 @@ public class Driver {
         /*############################################################*/
 
 
-        // TODO : Analyse the Calls In Here, and first send feedback based on my expected mode and place.
 
-        // TODO :  Give the second feedback after analysing the rationale.
         for(CallInfo item : callsInHere){
             EnumCollection.RINGER_MODE hisPreiction = item.ringerMode;
             EnumCollection.RINGER_MODE placeExpectaion = mRingerManagerCore.getPreferenceFromLocationName(place);
@@ -552,15 +564,27 @@ public class Driver {
             }
             // SEND the first feedback.
             // TODO : Check the null updated feedback scene
-            //giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
+            giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
+            System.out.println("First Feedback Sent = " + feedbackToSend.toString());
             // Get updated feedback from the Rational Manager. Exported By Ringer manager Core.
             // SEND the updated feedback, only if my first feedback was negative.
+            System.out.println("Going to ask for second feedback synthesis with rationale = " + item.rationale);
             updatedFeedbackToSend = mRingerManagerCore.getUpdatedFeedbackFromRationale(item.rationale);
             giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
+            System.out.println("Updated 2nd Feedback Sent = " + updatedFeedbackToSend.toString());
         }
 
 
 
+
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        System.out.println("####################   New Flows End here!  ###########################");
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
 
 
         /*############################################################*/
@@ -628,7 +652,7 @@ public class Driver {
             System.out.println("You have location as = " + location);
 
 
-            System.out.println("Going to Make a series of calls now.");
+            System.out.println("Going to Simulate the flows now.");
             simulateOneFlow(id, EnumCollection.RINGER_MODE.valueOf(currMode), EnumCollection.RINGER_MODE.valueOf(expMode), location);
             System.out.println("One Simulation Completed !");
             System.out.println("Please Press D + Enter to run again or any other key + Enter to exit.");
