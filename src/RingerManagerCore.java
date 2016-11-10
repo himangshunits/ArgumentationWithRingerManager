@@ -43,7 +43,7 @@ public class RingerManagerCore {
         mDecisionTree.train(new File(TRAIN_FILE_PATH));
         //System.out.println(tree.getRootNode());
         mLocationManagaer = new LocationManager();
-        mRationaleManager = new RationaleManager(mDecisionTree);
+        mRationaleManager = new RationaleManager(mDecisionTree, mLocationManagaer);
     }
 
 

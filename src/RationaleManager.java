@@ -27,9 +27,11 @@ import java.util.LinkedHashMap;
 public class RationaleManager {
     DecisionTree mTreeInstance;
     DynamicArgumentManager mArgumentManager;
+    LocationManager mLocationManager;
 
-    public RationaleManager(DecisionTree mTreeInstance) {
+    public RationaleManager(DecisionTree mTreeInstance, LocationManager locMgr) {
         this.mTreeInstance = mTreeInstance;
+        this.mLocationManager = locMgr;
         this.mArgumentManager = new DynamicArgumentManager();
     }
 
@@ -150,14 +152,80 @@ public class RationaleManager {
     }
 
 
+    // Checks if the argument matches with your belief
+    private boolean doesArgumentMatch(ArgumentInfo arg, EnumCollection.RINGER_MODE prediction){
+        boolean result = false;
+        switch (arg.contextKeyword){
+            case "place":
+                result = getPreferenceFromLocationType(mLocationManager.getLocationTypeForLocation(arg.value)).equals(prediction);
+                break;
+            case "neighbor_relationship":
+                if(arg.predicate.equals("Majority")){
+                    if(arg.value.equals("1")){
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Loud);
+                    } else if(arg.value.equals("2") || arg.value.equals("3")){
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Vibrate);
+                    } else {
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Silent);
+                    }
+                }
+                break;
+            case "expected_mode":
+                if(arg.value.equals("Silent") || arg.value.equals("Vibrate")){
+                    result = getPreferenceFromCallerExpectation(EnumCollection.CALLER_EXPECATION.SHOULD_RECEIVE).equals(prediction);
+
+                } else {
+                    result = getPreferenceFromCallerExpectation(EnumCollection.CALLER_EXPECATION.MUST_RECEIVE).equals(prediction);
+                }
+                break;
+            case "noise":
+                result = getPreferenceFromNoiseLevel(Integer.parseInt(arg.value)).equals(prediction);
+                break;
+            case "brightness":
+                break;
+            case "caller_relationship":
+                if(arg.predicate.equals("Majority")){
+                    if(arg.value.equals("1")){
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Loud);
+                    } else if(arg.value.equals("2") || arg.value.equals("3")){
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Vibrate);
+                    } else {
+                        result = prediction.equals(EnumCollection.RINGER_MODE.Silent);
+                    }
+                }
+                break;
+            case "call_reason":
+                result = getPreferenceFromUrgency(EnumCollection.URGENCY_TYPE.valueOf(arg.value)).equals(prediction);
+                break;
+            default:
+                System.out.println("Invalid Context Keyword! = " + arg.contextKeyword);
+        }
+        return result;
+    }
 
     // Get Updated feedbacks from a new Rationale.
     // Analyze one given Rationale and give a feedback on it, depending on your beleifs.
     public EnumCollection.FEEDBACK_TYPE getUpdatedFeedbackFromRationale(String rationale){
         RationaleInfo rationaleStruct = RationaleSerializerParser.getRationaleStructFromString(rationale);
+        Integer noOfPositiveMatches = 0;
+        Integer noOfNegativeMismatches = 0;
+        for(ArgumentInfo item : rationaleStruct.argsInFavor){
+            noOfPositiveMatches += (doesArgumentMatch(item, rationaleStruct.predictionInFavor)?1:0);
+        }
 
-        return null;
+        for(ArgumentInfo item: rationaleStruct.argsInOpp){
+            noOfNegativeMismatches += (doesArgumentMatch(item, rationaleStruct.predictionInOpp)? 0:1);
+        }
 
+        if(noOfPositiveMatches > 0)
+            return EnumCollection.FEEDBACK_TYPE.POSITIVE;
+        else if (noOfNegativeMismatches > 0)
+            return EnumCollection.FEEDBACK_TYPE.NEUTRAL;
+        else {
+            // This is the place where we need to learn!
+            // TODO : Learn from the new rationales received from other people.
+            return EnumCollection.FEEDBACK_TYPE.NEUTRAL;
+        }
     }
 
 

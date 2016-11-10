@@ -551,26 +551,13 @@ public class Driver {
                 feedbackToSend = EnumCollection.FEEDBACK_TYPE.NEGATIVE;
             }
             // SEND the first feedback.
-            giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
+            // TODO : Check the null updated feedback scene
+            //giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
             // Get updated feedback from the Rational Manager. Exported By Ringer manager Core.
             // SEND the updated feedback, only if my first feedback was negative.
-            if (feedbackToSend.equals(EnumCollection.FEEDBACK_TYPE.NEGATIVE)){
-                updatedFeedbackToSend = mRingerManagerCore.getUpdatedFeedbackFromRationale(item.rationale);
-                giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
-            }
+            updatedFeedbackToSend = mRingerManagerCore.getUpdatedFeedbackFromRationale(item.rationale);
+            giveFeedbacks(item.callId, item.calleeId, feedbackToSend, updatedFeedbackToSend);
         }
-
-
-
-
-
-
-
-        // TODO : Learn from the new rationales received from other people.
-
-
-
-
 
 
 
