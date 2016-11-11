@@ -35,7 +35,7 @@ public class RationaleManager {
         this.mArgumentManager = new DynamicArgumentManager(mLocationManager);
     }
 
-    // TODO : The below 5 functions are now static, but that has to change. Going forward we will have an argument manager cass, which ill be owned by this class
+
     // That class will keep the information on what the ringer mode should be when one value for a field is given.
     // That class's instances will get updated when a new rationale comes into the system, depending on the credibility of the rationale.
 
@@ -234,7 +234,7 @@ public class RationaleManager {
             return EnumCollection.FEEDBACK_TYPE.NEUTRAL;
         else {
             // This is the place where we need to learn!
-            // TODO : Learn from the new rationales received from other people.
+            // Learn from the new rationales received from other people.
             mArgumentManager.updateModelsFromRationaleFeedback(rationaleStruct);
             return EnumCollection.FEEDBACK_TYPE.NEUTRAL;
         }

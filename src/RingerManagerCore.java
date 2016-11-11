@@ -222,7 +222,7 @@ public class RingerManagerCore {
         EnumCollection.RINGER_MODE neighborJudgement = getAggregatedNeigborJudgement(neighborList);
         EnumCollection.CALLER_EXPECATION callerExp = getCallerExpectation(call);
         EnumCollection.URGENCY_TYPE urg = call.urgency;
-        Integer brightness = mLocationManagaer.getBrightnessLevelForLocation(location);;//TODO : make it Dynamic
+        Integer brightness = mLocationManagaer.getBrightnessLevelForLocation(location);
         return new AttibuteVectorInfo(locationType,noiseLevel,neighborJudgement, callerExp,urg, brightness);
     }
 

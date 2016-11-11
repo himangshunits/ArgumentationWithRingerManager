@@ -59,7 +59,7 @@ public class LocationManager {
         if(locationToNoiseMap.containsKey(locKey))
             return locationToNoiseMap.get(locKey);
         else
-            return 5;//TODO: Decide the default things
+            return 5;
     }
 
 
@@ -68,7 +68,7 @@ public class LocationManager {
         if(locationToBrightnessMap.containsKey(locKey))
             return locationToBrightnessMap.get(locKey);
         else
-            return 5;//TODO: Decide the default things
+            return 5;
     }
 
 
